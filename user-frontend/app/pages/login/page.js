@@ -184,7 +184,7 @@ const Login = () => {
                           {/* <p className="text-dark-50 mb-5">
                       Please enter your Mobile Number!
                     </p> */}
-                    {/* <div className="form-outline form-dark mb-4">
+                    <div className="form-outline form-dark mb-4">
                    
                       <input
                         type="tel"
@@ -194,15 +194,8 @@ const Login = () => {
                         onChange={(e)=>{handleInput(e)}}
                        
                       />
-                    </div> */}
-                    <PhoneInput
-                            className="mb-4 mt-4"
-                            placeholder="Mobile Number"
-                            value={ph}
-                            onChange={setPh}
-                            defaultCountry="IN"
-                            style={{border:"1px solid green"}}
-                          />
+                    </div>
+                  
                     {
                       ph.length>10&&
                       <p className="mb-3" style={{color:"red"}}>phone number must have 10 digits</p>

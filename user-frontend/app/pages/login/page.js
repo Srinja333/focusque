@@ -7,25 +7,66 @@ import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 import { toast, Toaster } from "react-hot-toast";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "react-phone-number-input/style.css";
-import PhoneInput from "react-phone-number-input";
 import { APP_MAIN_COLOR } from "../../shared/constant.js";
+import { LANGUAGES } from "./constant";
+import 'react-responsive-modal/styles.css';
+import { Modal } from 'react-responsive-modal';
+import loginStyle from  "./login.module.css"
 
 const Login = () => {
+
+ 
   const [otp, setOtp] = useState("");
   const [ph, setPh] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOTP, setShowOTP] = useState(false);
   const [user, setUser] = useState(null);
-  // const [isValid,setIsValid]=useState(true);
+  const [examIds, setExamIds] = useState(null);
+  const [examName, setExamName] = useState(null);
+  const [subExamIds, setSubExamIds] = useState([]);
+  const [subExamNames, setSubExamNames] = useState([]);
+  const[levelId,setLevelId]=useState()
+  const[langId,setLangId]=useState()
+  const [open, setOpen] = useState(false);
+
+  
+  useEffect(() => {
+    require("bootstrap/dist/js/bootstrap.min.js");
+  }, []);
   
 
-  // useEffect(() => {
-  //   // console.log("mmm",APP_MAIN_COLOR)
-  //   if(isValid==false){
-  //     toast.remove();
-  //     toast.error("phone number can't be more than 10 digits")
-  //   }
-  // }, [isValid]);
+  const userData={
+    uid:"",
+    name:"",
+    exams:[{
+      name:"",
+      level:""
+    }],
+    languages:[]
+  }
+
+  const onOpenModal = () => setOpen(true);
+  const onCloseModal = () => setOpen(false);
+  
+
+
+  const exams = [
+    {
+      name: "ssc",
+      sub_exams: [
+        { name: "ssc cgl", logo: "logo1" },
+        { name: "ssc chsl", logo: "logo2" },
+      ],
+    },
+
+    {
+      name: "railway",
+      sub_exams: [
+        { name: "rrb je", logo: "logo3" },
+        { name: "loco pilot", logo: "logo4" },
+      ],
+    },
+  ];
 
   function onCaptchVerify() {
     if (typeof window !== "undefined") {
@@ -46,7 +87,6 @@ const Login = () => {
   }
 
   function onSignup() {
-    
     setLoading(true);
 
     if (typeof window !== undefined) {
@@ -54,7 +94,7 @@ const Login = () => {
 
       const appVerifier = window.recaptchaVerifier;
 
-      const formatPh = "+" + ph;
+      const formatPh = "+91" + ph;
 
       signInWithPhoneNumber(auth, formatPh, appVerifier)
         .then((confirmationResult) => {
@@ -82,6 +122,7 @@ const Login = () => {
           if (res?.user?.uid !== undefined) {
             localStorage.setItem("user", JSON.stringify(res?.user?.uid));
           }
+          onOpenModal()
         })
         .catch((err) => {
           console.log(err);
@@ -90,28 +131,225 @@ const Login = () => {
     }
   };
 
- const handleInput=(e)=>{
-  setPh(e.target.value)
-  
-  // if(ph.length>10){
-  //   setIsValid(false)
-  //   return;
-  //  }
+  const handleInput = (e) => {
+    setPh(e.target.value);
+  };
 
-  
- 
-  
- }
+//   const handleLevels=(sub,level)=>{
+//    for(let ex of userData.exams){
+//     if(ex.name==sub){
+//       return;
+//     }
+   
+//    }
+//    userData.exams.push({
+//     name:sub,
+//     level:level
+//   }
+// )
+//   }
+
+  const handleUserSaveToDb=()=>{
+
+  }
 
   return (
     <>
       <Toaster toastOptions={{ duration: 4000 }} />
       <div id="recaptcha-container"></div>
-      {user ? (
-        <>login success</>
-      ) : (
+      {user !== null ? 
+      (
         <>
-          {showOTP ? (
+     
+      <Modal open={open} onClose={onCloseModal}   styles={
+        {
+          modal: {
+            background: "rgb(235, 253, 247)",
+            maxWidth: "500px",
+            width:" 100%",
+          }
+        }
+        } center>
+      <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h1 className="modal-title fs-5">
+                    User Info
+                  </h1>
+                </div>
+                <div className="modal-body">
+                  <div className="col">
+                    <label>Name:</label>
+                    <input
+                       onChange={(e)=>{
+                        userData.name=e.target.value
+                       }}
+                      className="mt-3 form-control"
+                      placeholder="Enter your name"
+                      style={{ border: "1px solid rgba(0, 0, 0, 0.175)" }}
+                    />
+                  </div>
+                  <div className="col mt-4">
+                    <p>Choose Your Exam:</p>
+                    {exams.map((ex, index) => (
+                      <>
+                        <input
+                          type="radio"
+                          className="btn-check"
+                          name="examOptions"
+                          id={`examOptions${index}`}
+                          autoComplete="off"
+                          onChange={(e) => {
+                            setExamName(ex?.name);
+                            setExamIds(e.target.id);
+                          }}
+                          checked={examIds === `examOptions${index}`}
+                        />
+                        <label
+                          className="btn btn-outline-success mx-2"
+                          for={`examOptions${index}`}
+                        >
+                          {ex?.name}
+                        </label>
+                      </>
+                    ))}
+                    <div class="row justify-content-evenly mt-4">
+                      {exams.map(
+                        (ex) =>
+                          ex?.name === examName &&
+                          ex.sub_exams.map((sub, index) => (
+                            <div className="col-4 form-check">
+                              <input
+                                className="radio form-check-input"
+                                type="checkbox"
+                                id={`subExamOptions-${sub?.name}-${index}`}
+                                value={sub?.name}
+                                style={{
+                                  cursor: "pointer",
+                                }}
+                                onChange={(e) => {
+                                  let tempSubExamIds = subExamIds;
+                                  let tempSubExamNames = subExamNames;
+
+                                  if (tempSubExamIds.includes(e.target.id)) {
+                                    tempSubExamIds.forEach((temp, tempInd) => {
+                                      if (temp == e.target.id) {
+                                        tempSubExamIds.splice(tempInd, 1);
+                                        tempSubExamNames.splice(tempInd, 1);
+                                        setSubExamNames([...tempSubExamNames]);
+                                        setSubExamIds([...tempSubExamIds]);
+                                      }
+                                    });
+
+                                    return;
+                                  }
+
+                                  tempSubExamIds.push(e.target.id);
+                                  tempSubExamNames.push(sub?.name);
+                                  setSubExamNames([...tempSubExamNames]);
+                                  setSubExamIds([...tempSubExamIds]);
+                                }}
+                                checked={subExamIds.includes(
+                                  `subExamOptions-${sub?.name}-${index}`
+                                )}
+                              />
+                              <label
+                                className="ms-auto"
+                                for={`subExamOptions-${sub?.name}-${index}`}
+                              >
+                                {sub?.logo}
+                                <span className="ms-auto">
+                                  &nbsp;{sub?.name}
+                                </span>
+                              </label>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+                  {/* {subExamNames.length !== 0 &&
+                    subExamNames.map((sub) => (
+                      <div className="col mt-4">
+                        <p>What is your level in {sub}?</p>
+                        {
+                          LEVELS.map((level)=>
+                          <div class="form-check">
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name={level}
+                            id={level}
+                            onChange={(e)=>{
+                              handleLevels(sub,e.target.id)
+                              setLevelId(e.target.id)
+                            }}
+                            checked={levelId===level}
+                          />
+                          <label className="form-check-label" for={level}>
+                            {level}
+                          </label>
+                        </div>
+                          )
+                        }
+                   
+                      
+                      </div>
+                    ))} */}
+
+<div className="col mt-4">
+                        <p>Choose your language</p>
+
+                        {
+                          LANGUAGES.map((lang)=>
+                          <div class="form-check">
+                          <input
+                            className="form-check-input"
+                            type="radio"
+                            name={lang}
+                            id={lang}
+                            onChange={(e)=>{
+setLangId(e.target.id)
+                            }}
+                            checked={langId===lang}
+                          />
+                          <label className="form-check-label" for={lang}>
+                            {lang}
+                          </label>
+                        </div>
+                          )
+                        }
+                       
+                    
+                       
+                      </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn"
+                    data-bs-dismiss="modal"
+                    style={{
+                      backgroundColor: APP_MAIN_COLOR,
+                      color: "white",
+                    }}
+                    aria-label="Close"
+                    onChange={()=>{
+                      handleUserSaveToDb()
+                    }}
+                  >
+                    Continue
+                  </button>
+                  {/* <button type="button" className="btn btn-primary">Understood</button> */}
+                </div>
+              </div>
+            </div>
+      </Modal>
+
+
+        </>
+      ) : (
+        
+          showOTP ? (
             <section className="vh-100">
               <div className="container py-5 h-100">
                 <div className="row d-flex justify-content-center align-items-center h-100">
@@ -145,12 +383,16 @@ const Login = () => {
                           ></OtpInput>
                           <div className="d-flex justify-content-center">
                             <button
+                            //  type="button"
+                            //  data-bs-toggle="modal"
+                            //  data-bs-target="#staticBackdrop"
                               onClick={onOTPVerify}
                               className="btn mt-5"
                               style={{
                                 backgroundColor: APP_MAIN_COLOR,
                                 color: "white",
                               }}
+                             
                             >
                               <span>Verify OTP</span>
                               {loading && (
@@ -184,23 +426,24 @@ const Login = () => {
                           {/* <p className="text-dark-50 mb-5">
                       Please enter your Mobile Number!
                     </p> */}
-                    <div className="form-outline form-dark mb-4">
-                   
-                      <input
-                        type="tel"
-                        className="form-control form-control"
-                        placeholder="Mobile Number"
-                        value={ph}
-                        onChange={(e)=>{handleInput(e)}}
-                       
-                      />
-                    </div>
-                  
-                    {
-                      ph.length>10&&
-                      <p className="mb-3" style={{color:"red"}}>phone number must have 10 digits</p>
-                    }
-                    {/* <div className="form-outline form-dark mb-4">
+                          <div className="form-outline form-dark mb-4">
+                            <input
+                              type="tel"
+                              className="form-control form-control"
+                              placeholder="Mobile Number"
+                              value={ph}
+                              onChange={(e) => {
+                                handleInput(e);
+                              }}
+                            />
+                          </div>
+
+                          {ph.length > 10 && (
+                            <p className="mb-3" style={{ color: "red" }}>
+                              phone number must have 10 digits
+                            </p>
+                          )}
+                          {/* <div className="form-outline form-dark mb-4">
                           <PhoneInput
                             className="mb-4 mt-4"
                             placeholder="Mobile Number*"
@@ -235,8 +478,11 @@ const Login = () => {
                               backgroundColor: APP_MAIN_COLOR,
                               color: "white",
                             }}
-                            disabled={ph.length==10?false:true}
+                            disabled={ph.length == 10 ? false : true}
                             // type="submit"
+                            type="button"
+                            // data-bs-toggle="modal"
+                            // data-bs-target="#staticBackdrop"
                           >
                             <span>CONTINUE</span>
                             {loading && (
@@ -266,8 +512,8 @@ const Login = () => {
                 </div>
               </div>
             </section>
-          )}
-        </>
+          )
+        
       )}
     </>
   );
